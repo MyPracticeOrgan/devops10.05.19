@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: billing-postgres-config
+  labels:
+    app: billing-postgres
+data:
+  POSTGRES_DB: postgres
+  POSTGRES_SCHEMA: ccs
+  POSTGRES_USER: keycloak
+  POSTGRES_PASSWORD: password
+  POSTGRESS_PORT: "5432"
+

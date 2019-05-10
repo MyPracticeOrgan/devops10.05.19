@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trudesksupport
+spec:
+  ports:
+    - port: 8118
+      protocol: TCP
+      targetPort: 8118
+      nodePort: {{ supportport }}
+  type: NodePort
+  selector:
+    app: trudesksupport
+

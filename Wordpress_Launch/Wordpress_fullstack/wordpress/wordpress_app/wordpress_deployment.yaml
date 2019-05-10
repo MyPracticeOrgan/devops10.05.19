@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - image: bitnami/wordpress:latest
+        name: wordpress
+        envFrom:
+           - configMapRef:
+                name: wordpress-config
+           - configMapRef:
+                name: word-config
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+         - name: dockersecrete

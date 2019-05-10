@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-maria-config
+  labels:
+    app: wordpress-maria
+data:
+  MARIADB_ROOT_USER: wordpress
+  MARIADB_ROOT_PASSWORD: wordpress
+  MARIADB_DATABASE: wordpress
+

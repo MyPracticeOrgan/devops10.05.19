@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'subdomainName' , defaultValue: "", description: 'Enter the Frontend Subdomian')
+        string(name: 'onboardingbackenduri' , defaultValue: "", description: 'Enter the Backend URL')
+        string(name: 'keycloakuri' , defaultValue: "", description: 'Enter the Keycloak URL')
+        string(name: 'billinguri' , defaultValue: "", description: 'BillingURL')
+        string(name: 'jenkinsuri' , defaultValue: "", description: 'Enter the Jenkins URL')
+        string(name: 'masterIP' , defaultValue: "", description: 'Master Ip address')
+        password(name: 'masterPsw' , defaultValue: "", description: 'Worker Ip address')
+        string(name: 'nodeIP' , defaultValue: "", description: 'Master passowrd')
+        password(name: 'nodePsw' , defaultValue: "", description: "worker Passowrd")
+        password(name: 'stripepublish_key' , defaultValue: "", description: 'Enter the stripe_publish_key')
+        password(name: 'stripesecret_key' , defaultValue: "", description: 'Enter the stripe_secret_key')
+        string(name: 'stripetaxpercent' , defaultValue: "", description: 'Enter the stripe_tax_percent')
+
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Onboarding_Launch
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Onboarding_Launch/test.sh ${params.masterIP} ${params.masterPsw} ${params.nodeIP} ${params.nodePsw}
+                       """
+             
+         }
+       }
+       
+      stage("App temp files configuration"){
+            steps{
+                sh """cd Onboarding_Launch/onboarding_keycloak_fullstack
+                      bash port.sh `echo ${params.subdomainName} | cut -d '.' -s -f1,2 --output-delimiter='-'`                   
+                      """
+            }
+        }
+        
+    stage("Nginx configuration"){
+            steps{
+                sh """cd Onboarding_Launch/Ansible_SSL
+                      bash nginxport.sh ${params.subdomainName} `echo ${params.onboardingbackenduri} | cut -d '/' -f3` `echo ${params.keycloakuri} | cut -d '/' -f3` `echo ${params.billinguri} | cut -d '/' -f3`
+                   """
+            }
+        }
+
+      stage("Application Deployment"){
+        steps{
+          sh 'sleep 10'
+          sh """export ANSIBLE_HOST_KEY_CHECKING=False
+                cd Onboarding_Launch/onboarding_keycloak_fullstack
+                ansible-playbook -i ../inventory App_stack_ansible.yaml --extra-vars "backend_uri=${params.onboardingbackenduri} frontend_uri=${params.subdomainName} keycloak_uri=${params.keycloakuri} billing_uri=${params.billinguri} stripepublish_key=${params.stripepublish_key} stripesecret_key=${params.stripesecret_key} stripetaxpercent=${params.stripetaxpercent} jenkinsuri=${params.jenkinsuri} Clientname=`echo ${params.subdomainName} | cut -d '.' -s -f1,2 --output-delimiter='-'`"
+                """
+        }
+      }
+      stage("Populate Country"){
+        steps{
+          sh 'sleep 2m'
+          sh """
+            curl ${params.onboardingbackenduri}/populate
+         """
+        }
+      }   
+    }
+}

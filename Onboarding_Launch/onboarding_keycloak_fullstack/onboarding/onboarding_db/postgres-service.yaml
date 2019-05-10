@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: onboarding-postgres
+  labels:
+    app: onboarding-postgres
+spec:
+  ports:
+   - port: 5432
+  selector:
+   app: onboarding-postgres
+
+

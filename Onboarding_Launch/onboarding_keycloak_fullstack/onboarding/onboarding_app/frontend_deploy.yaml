@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - image: 178.62.64.11:8086/onboard_frontend:1.2.72
+        name: frontend
+        envFrom:
+           - configMapRef:
+                name: frontend-config
+               
+        ports:
+        - containerPort: 3000
+      imagePullSecrets:
+         - name: dockersecrete
+

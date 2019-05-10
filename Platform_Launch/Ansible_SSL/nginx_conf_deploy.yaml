@@ -1,0 +1,113 @@
+---
+- hosts: workers
+  become: yes
+  vars:
+    frontend_dns: hiteam.com
+    backend_dns: backend.com  
+    keycloak_dns: keycloak.com
+    elastic_dns: elastic
+    elasticbackend_dns: elasticbackend
+    image_dns: imageuri
+    support_dns: truedesk
+    minio_dns: minion
+    frontendport: 30001
+    backendport: 30001
+    keycloakport: 30001
+    elasticfrontport: 30001
+    elasticbackendport: 30001
+    supportport: 30001
+    imagebackport: 30001
+    minioport: 30001
+
+    
+  tasks: 
+  - name: Installing epel
+    yum:
+      name: epel-release
+      state: latest
+
+  - name: nginx is present
+    yum:
+      name: nginx
+      state: latest
+
+  - name: Save nginx.conf
+    template: 
+      src: nginx.conf.j2 
+      dest: "/etc/nginx/nginx.conf"
+      mode: 0644
+      force: yes
+  
+  - name: Creates directory
+    file:
+      path: /etc/nginx/conf.d/sites-enabled
+      state: directory
+
+  - name: Save server conf
+    template: 
+      src: server.conf.j2 
+      dest: "/etc/nginx/conf.d/sites-enabled/{{ item.dns }}.conf" 
+      mode: 0644
+      force: yes
+    with_items:
+       - { dns: "{{ frontend_dns }}", port: "{{ frontendport }}" , stream: "{{ frontend_dns }}" }
+       - { dns: "{{ backend_dns }}" , port: "{{ backendport }}" , stream: "{{ backend_dns }}" }
+       - { dns: "{{ keycloak_dns }}" ,port: "{{ keycloakport }}" , stream: "{{ keycloak_dns }}" }
+       - { dns: "{{ elastic_dns }}" ,port: "{{ elasticfrontport }}" , stream: "{{ elastic_dns }}" }
+       - { dns: "{{ elasticbackend_dns }}" ,port: "{{ elasticbackendport }}" , stream: "{{ elasticbackend_dns }}" }
+       - { dns: "{{ support_dns }}" ,port: "{{ supportport }}" , stream: "{{ support_dns }}" }
+       - { dns: "{{ image_dns }}" ,port: "{{ imagebackport }}" , stream: "{{ image_dns }}" }
+       - { dns: "{{ minio_dns }}" ,port: "{{ minioport }}" , stream: "{{ minio_dns }}" }
+       
+
+  - name: Creates directory
+    file:
+      path: /etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d
+      state: directory
+    with_items:
+      - { dns: "{{ frontend_dns }}" , stream: "{{ frontend_dns }}" }
+      - { dns: "{{ backend_dns }}" , stream: "{{ backend_dns }}" }
+      - { dns: "{{ keycloak_dns }}" , stream: "{{ keycloak_dns }}" }
+      - { dns: "{{ elastic_dns }}" , stream: "{{ elastic_dns }}" }
+      - { dns: "{{ elasticbackend_dns }}" , stream: "{{ elasticbackend_dns }}" }
+      - { dns: "{{ support_dns }}" , stream: "{{ support_dns }}" }
+      - { dns: "{{ image_dns }}" , stream: "{{ image_dns }}" }
+      - { dns: "{{ minio_dns }}" , stream: "{{ minio_dns }}" }
+      
+
+
+  - name: Save server conf
+    template:
+      src: main.conf.j2
+      dest: "/etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d/main.conf"
+      mode: 0644
+      force: yes
+    with_items:
+       - { dns: "{{ frontend_dns }}" , stream: "{{ frontend_dns }}" }
+       - { dns: "{{ backend_dns }}" , stream: "{{ backend_dns }}" }
+       - { dns: "{{ elastic_dns }}" , stream: "{{ elastic_dns }}" }
+       - { dns: "{{ elasticbackend_dns }}" , stream: "{{ elasticbackend_dns }}" }
+       - { dns: "{{ support_dns }}" , stream: "{{ support_dns }}" }
+       - { dns: "{{ image_dns }}" , stream: "{{ image_dns }}" }
+       - { dns: "{{ minio_dns }}" , stream: "{{ minio_dns }}" }
+       
+  - name: Save keycloak conf
+    template:
+      src: keycloak.conf.j2
+      dest: "/etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d/main.conf"
+      mode: 0644
+      force: yes
+    with_items:
+       - { dns: "{{ keycloak_dns }}" , stream: "{{ keycloak_dns }}" }  
+  
+
+  - name: nginx -t to check the conf file syntax
+    command: "nginx -t"
+    notify:
+      - restart nginx
+
+  handlers:
+
+  - name: restart nginx
+    service: name=nginx state=restarted
+

@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: platform-postgres
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: platform-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:11.1
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: platform-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: {{ clientname }}-platform-postgredb
+      volumes:
+        - name: {{ clientname }}-platform-postgredb
+          persistentVolumeClaim:
+            claimName: {{ clientname }}-platform-postgres-pv-claim
+
+
+
+

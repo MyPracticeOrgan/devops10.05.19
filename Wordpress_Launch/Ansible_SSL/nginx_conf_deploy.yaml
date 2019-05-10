@@ -1,0 +1,69 @@
+---
+- hosts: workers
+  become: yes
+  vars:
+    frontend_dns: hiteam.com
+    frontendport: 40001
+
+    
+  tasks: 
+  - name: Installing epel
+    yum:
+      name: epel-release
+      state: latest
+
+  - name: nginx is present
+    yum:
+      name: nginx
+      state: latest
+
+  - name: Save nginx.conf
+    template: 
+      src: nginx.conf.j2 
+      dest: "/etc/nginx/nginx.conf"
+      mode: 0644
+      force: yes
+  
+  - name: Creates directory
+    file:
+      path: /etc/nginx/conf.d/sites-enabled
+      state: directory
+
+  - name: Save server conf
+    template: 
+      src: server.conf.j2 
+      dest: "/etc/nginx/conf.d/sites-enabled/{{ item.dns }}.conf" 
+      mode: 0644
+      force: yes
+    with_items:
+       - { dns: "{{ frontend_dns }}", port: "{{ frontendport }}" , stream: "{{ frontend_dns }}" }
+       
+
+  - name: Creates directory
+    file:
+      path: /etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d
+      state: directory
+    with_items:
+      - { dns: "{{ frontend_dns }}" , stream: "{{ frontend_dns }}" }      
+
+
+  - name: Save server conf
+    template:
+      src: main.conf.j2
+      dest: "/etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d/main.conf"
+      mode: 0644
+      force: yes
+    with_items:
+       - { dns: "{{ frontend_dns }}" , stream: "{{ frontend_dns }}" } 
+  
+
+  - name: nginx -t to check the conf file syntax
+    command: "nginx -t"
+    notify:
+      - restart nginx
+
+  handlers:
+
+  - name: restart nginx
+    service: name=nginx state=restarted
+

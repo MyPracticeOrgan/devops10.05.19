@@ -1,0 +1,26 @@
+---
+- hosts: workers
+  become_user: centos
+  vars:
+    folder_name: test
+
+  tasks:
+
+    - name: Install Git in node
+      command: yum install git -y
+
+    - name: Get updated files from git repository
+      git:
+        repo: "https://sysdevopsCC:QiNEToGafiPejatr5@github.com/ComplianceCompedium/CCS-Onboarding-DevOps.git"
+        dest: "/tmp/wildcardssl/"
+        accept_hostkey: yes
+        clone: yes
+        version: development
+
+    - name: Creates directory
+      file:
+        path: /etc/letsencrypt/live
+        state: directory
+
+    - name: copy cccseu.com folder
+      command: cp -r /tmp/wildcardssl/Centos/wildcard_ssl/{{ folder_name }} /etc/letsencrypt/live/

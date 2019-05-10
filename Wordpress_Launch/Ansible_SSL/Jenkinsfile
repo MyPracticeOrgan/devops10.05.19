@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'sitename' , defaultValue: "", description: 'Enter the site name')
+        string(name: 'username' , defaultValue: "", description: 'Enter the Wordpress username')
+        string(name: 'password' , defaultValue: "", description: 'Enter the Wordpress password')
+        string(name: 'billinguri' , defaultValue: "", description: 'BillingURL')
+        string(name: 'Email' , defaultValue: "", description: "Email")
+        string(name: 'Host_ip' , defaultValue: "", description: 'Host Ip address')
+        password(name: 'Host_pwd' , defaultValue: "", description: 'Host Passowrd')
+        string(name: 'siteuri' , defaultValue: "", description: 'Enter the Wordpress URL')
+      
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Ansible_SSL
+                       chmod +x ip_capture.sh'''
+                 sh """ set +x 
+                       Centos/Ansible_SSL/ip_capture.sh ${params.Host_ip} ${params.Host_pwd}
+                       """
+             
+         }
+       }
+       stage("SSL certs Creation"){
+         steps{
+             sh """ cd Centos/Ansible_SSL
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory ssl_certs.yaml --extra-vars "frontend_dns=${params.siteuri}  cert_email=${params.Email}" 
+                    """
+             sh 'sleep 20' 
+         }
+       } 
+        stage("Nginx configuration"){
+            steps{
+                sh """cd Centos/Ansible_SSL
+                      export ANSIBLE_HOST_KEY_CHECKING=False
+                      ansible-playbook -i inventory nginx_conf_deploy.yaml --extra-vars "frontend_dns=${params.siteuri}"
+                      """
+            }
+        }
+    }
+}

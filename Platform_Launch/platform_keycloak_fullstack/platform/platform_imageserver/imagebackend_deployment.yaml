@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: imagebackend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: imagebackend
+    spec:
+      containers:
+      - image: 178.62.64.11:8086/platform_image:1.2.23
+        name: image
+        envFrom:
+           - configMapRef:
+                name: image-config
+
+           - configMapRef:
+                name: imageurl-config
+     
+        ports:
+        - containerPort: 5000
+      imagePullSecrets:
+         - name: dockersecrete

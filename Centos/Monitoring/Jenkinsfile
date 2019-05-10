@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'masterIP' , defaultValue: "", description: 'Master Ip address')
+        password(name: 'masterPsw' , defaultValue: "", description: 'Mater Password')
+        string(name: 'clientname' , defaultValue: "monitoring", description: '  Enter the Client name')
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Monitoring
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Centos/Monitoring/test.sh ${params.masterIP} ${params.masterPsw}
+                       """             
+         }
+       }
+       
+      stage("Monitoring Deployment"){
+        steps{
+          sh 'sleep 5'
+          sh """export ANSIBLE_HOST_KEY_CHECKING=False
+                cd Centos/Monitoring
+                ansible-playbook -i inventory monitoring.yaml --extra-vars "clientname=${params.clientname}"
+                """
+                }
+             }
+           }
+        }

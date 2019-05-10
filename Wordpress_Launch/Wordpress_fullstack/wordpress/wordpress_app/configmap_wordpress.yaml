@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-config
+  labels:
+    app: backend
+data:
+  MARIADB_HOST: wordpress-maria
+  MARIADB_PORT_NUMBER: "3306"
+  WORDPRESS_DATABASE_USER: wordpress
+  WORDPRESS_DATABASE_NAME: wordpress
+  WORDPRESS_DATABASE_PASSWORD: wordpress
+  MARIADB_ROOT_USER: wordpress
+  MARIADB_ROOT_PASSWORD: wordpress
+  MARIADB_DATABASE: wordpress

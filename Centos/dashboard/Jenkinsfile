@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Master_ip' , defaultValue: "", description: 'Master Ip address')
+        password(name: 'Master_pass' , defaultValue: "", description: 'Master passowrd')
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Ansible_jenkins
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Centos/Ansible_jenkins/test.sh ${params.Master_ip} ${params.Master_pass}
+                       """
+             
+         }
+       }
+       stage("Jenkins Installation"){
+         steps{
+             sh 'sleep 5' 
+             sh ''' cd Centos/dashboard
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory dashboard.yaml '''
+                }
+       }
+    }
+}

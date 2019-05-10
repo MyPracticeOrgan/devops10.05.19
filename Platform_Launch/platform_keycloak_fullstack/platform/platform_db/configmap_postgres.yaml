@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-postgres-config
+  labels:
+    app: platform-postgres
+data:
+  POSTGRES_DB: CCSPLATFORM
+  POSTGRES_SCHEMA: ccs
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+

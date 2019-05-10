@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-config
+  labels:
+    app: imagebackend
+data:
+  MINIO_BUCKET_NAME: platform
+  ACCESS_KEY: admin
+  SECRET_KEY: C1I25xi#rohUpHefR?s2
+  MINIO_PORT: "{{ minioport }}"
+  MINIO_SSL: "true"

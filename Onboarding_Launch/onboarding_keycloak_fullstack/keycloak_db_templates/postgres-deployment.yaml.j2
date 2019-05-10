@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: keycloak-postgres
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: keycloak-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: {{ clientname }}-keycloak-postgredb
+      volumes:
+        - name: {{ clientname }}-keycloak-postgredb
+          persistentVolumeClaim:
+            claimName: {{ clientname }}-keycloak-postgres-pv-claim
+
+
+
+

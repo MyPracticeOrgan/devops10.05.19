@@ -1,0 +1,40 @@
+---
+- hosts: master
+  become_user: centos
+  
+  vars:
+    sitename: platform-backend
+    username: vignesh
+    password: password
+    email: vikyranga@gmail.com
+    siteuri: https://platform-backend.cccseu.com
+    Clientname: CC_App
+
+  tasks:
+
+  - name: Copy the deployment file
+    copy:
+       src: wordpress
+       dest: /opt/wordpress/
+       force: yes  
+
+  - name: Creating a Application for {{ Clientname }}
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace {{ Clientname }}"
+    
+  - name: Deploying Nexus Docker secrets
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create secret docker-registry dockersecrete --docker-server=178.62.64.11:8086 --docker-username=CC_devops --docker-password=3RiNO#A_ --namespace={{ Clientname }}"
+
+  - name: Deploying wordpress db Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/wordpress/wordpress/wordpress_db/ --namespace={{ Clientname }}"
+
+  - name: Setting up DB  
+    command: "sleep 50"  # wait 50 sec because the db needs to be up before connecting to wordpress
+
+  - name: creating frontend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap word-config --from-literal WORDPRESS_USERNAME={{ username }} --from-literal WORDPRESS_PASSWORD={{ password }} --from-literal WORDPRESS_EMAIL={{ email }} --from-literal WORDPRESS_BLOG_NAME={{ sitename }} --from-literal WORDPRESS_HOST=https://{{ siteuri }}/ --namespace={{ Clientname }}"
+  
+  - name: deploying wordpress App
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/wordpress/wordpress/wordpress_app/ --namespace={{ Clientname }}"
+     
+  - name: Deploying service application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/wordpress/wordpress/app_services/ --namespace={{ Clientname }}"

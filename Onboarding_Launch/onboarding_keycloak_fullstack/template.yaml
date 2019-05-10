@@ -1,0 +1,58 @@
+---
+- hosts: localhost
+
+  vars:
+    frontendport: 30007
+    backendport: 30008
+    keycloakport: 30009
+    billingport: 300010
+    clientname: optit
+    
+  tasks: 
+
+  - name: Create onboarding Billing DB files
+    template: src={{ item }} dest=./onboarding/onboarding_billing_db/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./billing_db_templates/*.j2
+
+  - name: Create onboarding keycloak DB files
+    template: src={{ item }} dest=./keycloak/keycloakdb/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./keycloak_db_templates/*.j2
+
+  - name: Create platform DB files
+    template: src={{ item }} dest=./onboarding/onboarding_db/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./onboarding_db_templates/*.j2
+
+  - name: create application service template
+    template: src={{ item }} dest=./onboarding/app_services/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./app_templets/*.j2
+
+   
+
+- hosts: workers
+  become: yes
+
+  vars:
+    clientname: optit
+
+  tasks:
+  
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-billing/data
+      state: directory  
+
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-keycloak/data
+      state: directory
+      
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-onboarding/data
+      state: directory
+      
+

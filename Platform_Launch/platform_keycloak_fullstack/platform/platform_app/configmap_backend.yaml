@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  labels:
+    app: backend
+data:
+  DBHOST: platform-postgres
+  DBPORT: "5432"
+  DBNAME: CCSPLATFORM
+  SCHEMANAME: ccs
+  DBUSER: postgres
+  DBPASSWORD: postgres
+  #FRONTENDURI: https://yos.cccsuk.co.uk/
+  #keycloakURI: https://yos-keycloak.cccsuk.co.uk/auth/
+  realmName: master
+  adminName: admin
+  adminPassword: publPh6cHuthEbRApHeN
+  adminClientId: admin-cli
+  keycloakAccessEndpoint: /protocol/openid-connect/token
+  PLATFORM_USER_ELASTIC_INDEX: platform-user
+  PLATFORM_LOG_ELASTIC_INDEX: platform-audit
+  PLATFORM_SUPPORT_ELASTIC_INDEX: platform-support

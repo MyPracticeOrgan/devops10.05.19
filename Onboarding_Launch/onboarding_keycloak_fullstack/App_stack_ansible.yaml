@@ -1,0 +1,114 @@
+---
+- hosts: master
+  become_user: centos
+  vars:
+    backend_uri: https://onboarding-backend.cccsuk.co.uk
+    frontend_uri: onboarding-frontend.cccsuk.co.uk
+    keycloak_uri: https://onboarding-keycloak.cccsuk.co.uk
+    billing_uri: https://onboarding-billing.cccsuk.co.uk
+    jenkinsuri: https://jenkins.cccsuk.co.uk
+    stripepublish_key: pk_test_jvWyZ1jtyG4XVvrAFMUXC4Gj
+    stripesecret_key: sk_test_9JaS2xziotPnAM8SDymuwXyN
+    stripetaxpercent: 20
+    Clientname: CC_app
+
+  tasks:
+
+  - name: Copy the deployment file
+    copy:
+       src: keycloak
+       dest: /opt/onboarding/
+       force: yes
+  - name: Copy the deployment file
+    copy:
+       src: onboarding
+       dest: /opt/onboarding/
+       force: yes
+ 
+  - name: Creating a Application for {{ Clientname }}
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace {{ Clientname }}"  
+
+  - name: Deploying Nexus Docker secrets
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create secret docker-registry dockersecrete --docker-server=178.62.64.11:8086 --docker-username=CC_devops --docker-password=3RiNO#A_ --namespace={{ Clientname }}"
+
+  - name: Deploying keycloak db Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/keycloak/keycloakdb/ --namespace={{ Clientname }}"
+
+  - name: Setting up DB  
+    command: "sleep 5"  # wait 10 sec bcs the db needs to be up before connecting to backend
+  
+  - name: Deploying keycloak Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/keycloak/ --namespace={{ Clientname }}"
+
+  - name: Deploying onboarding backend db Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/onboarding/onboarding_db/ --namespace={{ Clientname }}"
+  
+  - name: Wait for 10 sec 
+    command: "sleep 10"  # wait 10 sec bcs the db needs to be up before connecting to backend
+  
+  - name: creating onboarding frontend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap frontend-config --from-literal REACT_APP_BACKEND_URI={{ backend_uri }}/ --from-literal REACT_APP_BILLING_BACKEND_URI={{ billing_uri }}/ --from-literal REACT_APP_STRIPE_PUBLISH_KEY={{ stripepublish_key }} --namespace={{ Clientname }}"
+
+  - name: creating onboarding backend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap backendurl-config --from-literal FRONTENDURI=https://{{ frontend_uri }}/ --from-literal keycloakURI={{ keycloak_uri }}/auth/ --namespace={{ Clientname }}" 
+
+  - name: creating onboarding billing configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap billingurl-config --from-literal keycloakURI={{ keycloak_uri }}/auth/ --from-literal STRIPE_API_KEY={{ stripesecret_key }} --from-literal BILLING_BACKEND_URI={{ billing_uri }}/ --from-literal ONBOARD_BACKEND_URI={{ backend_uri }} --from-literal STRIPE_PUBLISH_KEY={{ stripepublish_key }} --from-literal STRIPE_TAX_PERCENT={{ stripetaxpercent }} --from-literal JENKINSURI={{ jenkinsuri }}/ --namespace={{ Clientname }}"
+   
+  - name: Deploying onboarding Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/onboarding/onboarding_app/ --namespace={{ Clientname }}"
+    
+  - name: Deploying onboarding Billing DB Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/onboarding/onboarding_billing_db/ --namespace={{ Clientname }}"
+    
+  - name: Deploying onboarding Billing backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/onboarding/onboarding_billing_app/ --namespace={{ Clientname }}"
+
+  - name: Deploying onboarding services Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/onboarding/app_services/ --namespace={{ Clientname }}"
+    
+  - name: Deploying Application stack  
+    command: "sleep 6m"  # wait 6 mins bcs the db needs to be up before connecting to backend
+
+  - name: Deploying onboarding Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: connecting to backend Db  
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying onboarding Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=1 --namespace={{ Clientname }}"
+    
+  - name: Wait for 50 sec 
+    command: "sleep 50"  # wait 50 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying onboarding Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: Connecting the Application stack 
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying onboarding Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=1 --namespace={{ Clientname }}"
+    
+  - name: connecting to backend Db  
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Billing Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment billing --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: connecting to backend Db  
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Billing  Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment billing --replicas=1 --namespace={{ Clientname }}"
+
+  - name: Deploying Billing Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment billing --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: connecting to backend Db  
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Billing  Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment billing --replicas=1 --namespace={{ Clientname }}"
+

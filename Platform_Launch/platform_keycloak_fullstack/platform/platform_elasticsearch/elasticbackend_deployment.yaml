@@ -1,0 +1,22 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: elasticsearchbackend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearchbackend
+    spec:
+      containers:
+      - image: 178.62.64.11:8086/platform_elasticsearch:1.2.34
+        name: elasticsearchbackend
+        envFrom:
+           - configMapRef:
+                name: elasticsearchbackendurl-config
+     
+        ports:
+        - containerPort: 4000
+      imagePullSecrets:
+         - name: dockersecrete

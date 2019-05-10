@@ -1,0 +1,114 @@
+---
+- hosts: master
+  become_user: centos
+  
+  vars:
+    backend_uri: https://platform-backend.cccsuk.co.uk
+    frontend_uri: platform-frontend.cccsuk.co.uk
+    keycloak_uri: https://platform-backend.cccsuk.co.uk
+    elasticfrontenduri: https://elastic-backend.cccsuk.co.uk
+    elasticbackenduri: https://elastic-frontend.cccsuk.co.uk
+    supporturi: https://supporturi.cccseu.com
+    imageuri: https://image.cccseu.com
+    miniouri: https://minio.cccseu.com
+    billinguri: https://platform-demo-billing.cccseu.com
+    stripepublish_key: pk_test_jvWyZ1jtyG4XVvrAFMUXC4Gj
+    stripetaxpercent: 20
+    Clientname: CC_App
+
+  tasks:
+
+  - name: Copy the deployment file
+    copy:
+       src: keycloak
+       dest: /opt/platform/
+       force: yes
+  - name: Copy the deployment file
+    copy:
+       src: platform
+       dest: /opt/platform/
+       force: yes  
+
+  - name: Creating a Application for {{ Clientname }}
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace {{ Clientname }}"
+    
+  - name: Deploying Nexus Docker secrets
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create secret docker-registry dockersecrete --docker-server=178.62.64.11:8086 --docker-username=CC_devops --docker-password=3RiNO#A_ --namespace={{ Clientname }}"
+
+  - name: Deploying keycloak db Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/keycloak/keycloakdb/ --namespace={{ Clientname }}"
+
+  - name: Setting up DB  
+    command: "sleep 20"  # wait 20 sec bcs the db needs to be up before connecting to backend
+  
+  - name: Deploying keycloak Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/keycloak/ --namespace={{ Clientname }}"
+
+  - name: Deploying Platform backend db Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_db/ --namespace={{ Clientname }}"
+  
+
+  - name: Wait for 50 sec 
+    command: "sleep 50"  # wait 10 sec bcs the db needs to be up before connecting to backend
+
+
+  - name: creating elasticsearch backend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap elasticsearchbackendurl-config --from-literal ELASTICURI={{ elasticfrontenduri }}/ --namespace={{ Clientname }}" 
+
+  - name: Deploying Platform Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_app/ --namespace={{ Clientname }}"
+
+  - name: deploying Elasticsearch App
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_elasticsearch/ --namespace={{ Clientname }}"
+
+  - name: deploying support App
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_support_app/ --namespace={{ Clientname }}"
+  
+  - name: deploying support mongo db App
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_support_db/ --namespace={{ Clientname }}"
+  
+  - name: deploying Imageserver App
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_imageserver/ --namespace={{ Clientname }}"
+
+  - name: creating frontend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap frontend-config --from-literal REACT_APP_BACKEND_URI={{ backend_uri }}/ --from-literal REACT_APP_IMAGE_BACKEND_URI={{ imageuri }}/ --from-literal REACT_APP_BILLING_BACKEND_URI={{ billinguri }} --from-literal REACT_APP_STRIPE_PUBLISH_KEY={{ stripepublish_key }} --from-literal STRIPE_TAX_PERCENT={{ stripetaxpercent }} --namespace={{ Clientname }}"
+    
+  - name: creating platform backend configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap backendurl-config --from-literal FRONTENDURI=https://{{ frontend_uri }}/ --from-literal keycloakURI={{ keycloak_uri }}/auth/ --from-literal ELASTIC_BACKEND_URI={{ elasticbackenduri }}/ --from-literal SUPPORT_API_URI={{ supporturi }}/api/v1/ --from-literal SUPPORT_URI={{ supporturi }}/ --namespace={{ Clientname }}" 
+  
+  - name: creating imageurl configmap
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create configmap imageurl-config --from-literal MINIO_URI={{ miniouri }}/ --namespace={{ Clientname }}"
+
+
+  - name: Deploying minio Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/platform_minio/ --namespace={{ Clientname }}"
+
+
+  - name: Deploying service application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/platform/platform/app_services/ --namespace={{ Clientname }}"
+
+    
+  - name: Deploying Application stack  
+    command: "sleep 8m"  # wait 10 sec bcs the db needs to be up before connecting to backend
+
+  - name: Deploying Platform Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: connecting to backend Db  
+    command: "sleep 20"  # wait 10 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Platform Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=1 --namespace={{ Clientname }}"
+    
+  - name: Wait for 50 sec 
+    command: "sleep 50"  # wait 10 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Platform Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=0 --namespace={{ Clientname }}"
+    
+  - name: Connecting the Application stack 
+    command: "sleep 20"  # wait 10 sec bcs the db needs to be up before connecting to backend
+    
+  - name: Deploying Platform Backend Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf scale deployment backend --replicas=1 --namespace={{ Clientname }}"
+

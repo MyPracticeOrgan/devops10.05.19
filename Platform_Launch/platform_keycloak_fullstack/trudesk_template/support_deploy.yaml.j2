@@ -1,0 +1,42 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: trudesksupport
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: trudesksupport
+    spec:
+      containers:
+      - image: polonel/trudesk:1.0.6
+        name: trudesksupport
+        envFrom:
+           - configMapRef:
+                name: trudesksupport-config
+        volumeMounts:
+        - name: {{ clientname }}-supportupload
+          mountPath: /data/trudesk/uploads
+        - name: {{ clientname }}-supportplugins
+          mountPath: /data/trudesk/plugins
+        - name: {{ clientname }}-supportbackups
+          mountPath: /data/trudesk/backups
+
+        ports:
+        - containerPort: 8118
+      volumes:
+      - name: {{ clientname }}-supportupload
+        hostPath:
+          path: /{{ clientname }}/data/trudesk/uploads
+      - name: {{ clientname }}-supportplugins
+        hostPath:
+          path: /{{ clientname }}/data/trudesk/plugins
+      - name: {{ clientname }}-supportbackups
+        hostPath:
+          path: /{{ clientname }}/data/trudesk/backups
+        
+      imagePullSecrets:
+         - name: dockersecrete
+
+

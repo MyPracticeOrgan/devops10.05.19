@@ -1,0 +1,14 @@
+---
+- hosts: master
+
+  tasks:
+  - name: Copy the deploymnet file
+    template:
+       src: kube_frontend_deployment.yaml
+       dest: /tmp/kube_frontend_deployment.yaml
+    sudo: ubuntu
+
+  - name: Deploying Frontend application
+    #command: kubectl create -f /tmp/kube_front_deploy.yaml
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /tmp/kube_frontend_deployment.yaml"
+    sudo: ubuntu

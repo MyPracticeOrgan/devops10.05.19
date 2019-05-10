@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onboarding-postgres-config
+  labels:
+    app: onboarding-postgres
+data:
+  POSTGRES_DB: CCSONBOARD
+  POSTGRES_SCHEMA: ccs
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+

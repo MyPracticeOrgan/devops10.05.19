@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress-maria
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wordpress-maria
+    spec:
+      containers:
+        - name: maria
+          image: bitnami/mariadb:latest
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - configMapRef:
+                name: wordpress-maria-config
+          volumeMounts:
+            - mountPath: /var/lib/mariasql/data
+              name: {{ clientname }}-wordpress-mariadb
+      volumes:
+        - name: {{ clientname }}-wordpress-mariadb
+          persistentVolumeClaim:
+            claimName: {{ clientname }}-wordpress-maria-pv-claim
+

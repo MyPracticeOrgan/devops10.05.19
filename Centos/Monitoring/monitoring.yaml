@@ -1,0 +1,25 @@
+---
+- hosts: master
+  become_user: centos
+  vars:
+    clientname: monitoring
+
+  tasks:
+
+  - name: Copy the deployment file
+    copy:
+       src: deployment_files
+       dest: /opt/monitoring/
+       force: yes
+ 
+  - name: Creating a Namespace for Monitoring Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace {{ clientname }}"
+
+  - name: Deploying Prometheus Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/monitoring/deployment_files/prometheus/"
+
+  - name: Waiting to Prometheus Configurarion
+    command: "sleep 5"  # wait 5 sec bcs prometheus configuration
+  
+  - name: Deploying Grafana Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/monitoring/deployment_files/grafana/"

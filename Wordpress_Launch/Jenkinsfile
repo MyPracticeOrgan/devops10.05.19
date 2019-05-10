@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'sitename' , defaultValue: "", description: 'Enter the site name')
+        string(name: 'username' , defaultValue: "", description: 'Enter the Wordpress username')
+        string(name: 'password' , defaultValue: "", description: 'Enter the Wordpress password')
+        string(name: 'masterIP' , defaultValue: "134.209.29.189", description: 'Master Ip address')
+        password(name: 'masterPsw' , defaultValue: "devops@123", description: 'Master Password')
+        string(name: 'nodeIP' , defaultValue: "134.209.19.147", description: 'Node Ip address')
+        password(name: 'nodePsw' , defaultValue: "devops@123", description: 'Worker Password')
+        string(name: 'email' , defaultValue: "", description: 'Enter user email')
+        string(name: 'siteuri' , defaultValue: "", description: 'Enter the Wordpress URL')
+  
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Wordpress_Launch
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Wordpress_Launch/test.sh ${params.masterIP} ${params.masterPsw} ${params.nodeIP} ${params.nodePsw}
+                       """
+             
+         }
+       }
+       
+       stage("App temp files configuration"){
+            steps{
+                sh """cd Wordpress_Launch/Wordpress_fullstack
+                      bash port.sh ${params.sitename}                   
+                      """
+            }
+        }
+        
+       stage("Nginx configuration"){
+            steps{
+                sh """cd Wordpress_Launch/Ansible_SSL
+                      bash nginxport.sh ${params.siteuri} | cut -d '/' -f3
+                   """
+            }
+        }
+       
+      stage("Application Deployment"){
+        steps{
+          sh 'sleep 10'
+          sh """export ANSIBLE_HOST_KEY_CHECKING=False
+                cd Wordpress_Launch/Wordpress_fullstack
+                ansible-playbook -i ../inventory App_stack_ansible.yaml --extra-vars "siteuri=${params.siteuri} sitename=${params.sitename} username=${params.username} password=${params.password} email=${params.email} Clientname=${params.sitename}"
+                """
+                   }
+                }
+
+      stage("Getting the port number"){
+        steps{
+        script {
+                    env.FILENAME = readFile 'Wordpress_Launch/Wordpress_fullstack/newport.txt'
+                    String a = "${env.FILENAME}"
+                    String[] str
+                    str = a.split('=')
+                    echo str[1]
+                    env.PORTNAME= str[1]
+                     }
+                   }        
+                }     
+              }
+      post { 
+      success { 
+          echo 'I will always say Hello again!'
+          echo env.PORTNAME 
+            sh """curl -X POST \
+            https://platform-demo-wordpress.cccseu.com/site/jenkinsStatusUpdate \
+            -H 'content-type: application/x-www-form-urlencoded' \
+            -d 'email=$email&userName=$username&siteName=$sitename&siteURI=http://$siteuri:$PORTNAME&jenkinsStatus=1&password=$password'
+            """
+      }
+      failure { 
+        echo 'I will always say bye again!'
+            sh """curl -X POST \
+              https://platform-demo-wordpress.cccseu.com/site/jenkinsStatusUpdate \
+              -H 'content-type: application/x-www-form-urlencoded' \
+              -d 'email=$email&userName=$username&siteName=$sitename&siteURI=$siteuri&jenkinsStatus=0&password=$password'
+              """
+      }
+      aborted{
+        echo 'I will always say bye again in abort!'
+          sh """curl -X POST \
+            https://platform-demo-wordpress.cccseu.com/site/jenkinsStatusUpdate \
+            -H 'content-type: application/x-www-form-urlencoded' \
+            -d 'email=$email&userName=$username&siteName=$sitename&siteURI=$siteuri&jenkinsStatus=0&password=$password'
+            """
+            }
+          }
+        }

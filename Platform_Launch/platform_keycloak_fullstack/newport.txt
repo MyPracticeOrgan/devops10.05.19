@@ -1,0 +1,8 @@
+frontendport=30008
+backendport=30009
+keycloakport=30010
+elasticfrontport=30011
+elasticbackendport=30012	
+supportport=30013
+imagebackport=30014
+minioport=30015

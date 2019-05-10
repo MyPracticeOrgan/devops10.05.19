@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - image: 178.62.64.11:8086/onboard_keycloak:1.2.6
+        name: keycloak
+        envFrom:
+           - configMapRef:
+               name: keycloak-config     
+
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+         - name: dockersecrete
+

@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'subdomainName' , defaultValue: "", description: 'Enter the Frontend Subdomian')
+        string(name: 'platfrombackenduri' , defaultValue: "", description: 'Enter the Backend URL')
+        string(name: 'keycloakuri' , defaultValue: "", description: 'Enter the Keycloak URL')
+        string(name: 'elasticfrontenduri' , defaultValue: "", description: 'Enter the elasticfrontend URL')
+        string(name: 'elasticbackenduri' , defaultValue: "", description: 'Enter the elasticbackend URL')
+        string(name: 'supporturi' , defaultValue: "", description: 'Enter the support URL')
+        string(name: 'imageuri' , defaultValue: "", description: 'Enter the image URL')
+        string(name: 'miniouri' , defaultValue: "", description: 'Enter the minio URL')
+	string(name: 'billinguri' , defaultValue: "", description: 'Enter the Billing URL')
+	string(name: 'onboardingbackenduri' , defaultValue: "", description: 'Enter the Onboard Backend URL')
+	string(name: 'userName' , defaultValue: "", description: 'Enter User name')
+        string(name: 'email' , defaultValue: "", description: 'Enter user email')
+        string(name: 'kUserID' , defaultValue: "", description: 'Enter KUID')
+	string(name: 'stripepublish_key' , defaultValue: "", description: 'Enter the stripe_publish_key')
+	string(name: 'stripetaxpercent' , defaultValue: "", description: 'Enter the stripe_tax_percent')
+        string(name: 'adminemail', defaultValue: "vignesh.k@akonisoftwareservices.com", description: 'Admin url for ssl creation')
+        string(name: 'masterIP' , defaultValue: "104.248.166.239", description: 'Master Ip address')
+        password(name: 'masterPsw' , defaultValue: "r9swe?o++lk04I3a6evo", description: 'Master password')
+        string(name: 'nodeIP' , defaultValue: "159.65.82.150", description: 'Worker Ip address')
+        password(name: 'nodePsw' , defaultValue: "cHibrUnosut5Obrifujo", description: "worker Password")
+
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Platform_Launch
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Platform_Launch/test.sh ${params.masterIP} ${params.masterPsw} ${params.nodeIP} ${params.nodePsw}
+                       """
+             
+         }
+       }
+       
+       stage("App temp files configuration"){
+            steps{
+                sh """cd Platform_Launch/platform_keycloak_fullstack
+                      bash port.sh `echo ${params.subdomainName} | cut -d '.' -s -f1,2 --output-delimiter='-'`                   
+                      """
+            }
+        }
+        
+	stage("Nginx configuration"){
+            steps{
+                sh """cd Platform_Launch/Ansible_SSL
+                      bash nginxport.sh ${params.subdomainName} `echo ${params.platfrombackenduri} | cut -d '/' -f3` `echo ${params.keycloakuri} | cut -d '/' -f3` `echo ${params.elasticfrontenduri} | cut -d '/' -f3` `echo ${params.elasticbackenduri} | cut -d '/' -f3` `echo ${params.supporturi} | cut -d '/' -f3` `echo ${params.imageuri} | cut -d '/' -f3` `echo ${params.miniouri} | cut -d '/' -f3`
+                   """
+            }
+        }
+       
+      stage("Application Deployment"){
+        steps{
+          sh 'sleep 10'
+          sh """export ANSIBLE_HOST_KEY_CHECKING=False
+                cd Platform_Launch/platform_keycloak_fullstack
+                ansible-playbook -i ../inventory App_stack_ansible.yaml --extra-vars "backend_uri=${params.platfrombackenduri} frontend_uri=${params.subdomainName} keycloak_uri=${params.keycloakuri} elasticfrontenduri=${params.elasticfrontenduri} elasticbackenduri=${params.elasticbackenduri} supporturi=${params.supporturi} imageuri=${params.imageuri} miniouri=${params.miniouri} billinguri=${params.billinguri} onboardingbackenduri=${params.onboardingbackenduri} stripepublish_key=${params.stripepublish_key} stripetaxpercent=${params.stripetaxpercent} Clientname=`echo ${params.subdomainName} | cut -d '.' -s -f1,2 --output-delimiter='-'`"
+                """
+        }
+      }  
+	    
+       stage("Multiple API Execution"){
+            steps{
+                sh 'sleep 8m'
+                sh """ curl -X POST ${params.elasticbackenduri}/elasticIndex -H 'Content-Type: application/x-www-form-urlencoded' -d 'searchIndexName=platform-user'
+		   """
+		sh """ curl -X POST ${params.elasticbackenduri}/elasticIndex -H 'Content-Type: application/x-www-form-urlencoded' -d 'searchIndexName=platform-audit' 
+		   """
+		sh """ curl -X POST ${params.elasticbackenduri}/elasticIndex -H 'Content-Type: application/x-www-form-urlencoded' -d 'searchIndexName=platform-support'
+		   """
+		sh """ curl -X POST ${params.imageuri}/bucket/createBucket
+		   """
+		sh """ curl -X GET ${params.platfrombackenduri}/populate
+		   """
+		sh """ curl -X POST ${params.imageuri}/bucket/setPolicyBucket -H 'content-type: application/x-www-form-urlencoded'
+		   """
+		sh """ curl -X POST ${params.platfrombackenduri}/roles/createRole
+		   """     
+	    }
+       }	    
+       stage("API Execution"){
+            steps{
+                sh 'sleep 1m'
+                sh """ cd Platform_Launch/Ansible_SSL
+                       chmod +X api.sh
+                       bash -x api.sh
+                   """
+            }
+        }
+    }
+}

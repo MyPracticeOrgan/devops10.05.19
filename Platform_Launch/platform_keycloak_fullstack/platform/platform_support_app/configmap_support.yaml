@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trudesksupport-config
+  labels:
+    app: trudesksupport
+data:
+  NODE_ENV: production
+  MONGODB_PORT_27017_TCP_ADDR: mongodb
+  MONGODB_DATABASE_NAME: trudesk

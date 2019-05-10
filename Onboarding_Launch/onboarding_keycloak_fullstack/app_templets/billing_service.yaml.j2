@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing
+spec:
+  ports:
+    - port: 3001
+      protocol: TCP
+      targetPort: 3001
+      nodePort: {{ billingport }}
+  type: NodePort
+  selector:
+    app: billing

@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Master_ip' , defaultValue: "", description: 'Master Ip address')
+        password(name: 'Master_pass' , defaultValue: "", description: 'Master passowrd')
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Ansible_nexus
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Centos/Ansible_nexus/test.sh ${params.Master_ip} ${params.Master_pass}
+                       """
+             
+         }
+       }
+       stage("Nexus Installation"){
+         steps{
+             sh 'sleep 5' 
+             sh ''' cd Centos/Ansible_nexus
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory Nexus.yml '''
+                }
+       }
+    }
+}

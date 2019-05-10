@@ -1,0 +1,4 @@
+frontendport=30001
+backendport=30002
+keycloakport=30003
+billingport=30004

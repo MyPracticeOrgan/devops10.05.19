@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Master_ip' , defaultValue: "", description: 'Master Ip address')
+        string(name: 'Worker_ip' , defaultValue: "", description: 'Worker Ip address')
+        password(name: 'Master_pass' , defaultValue: "", description: 'Master passowrd')
+        password(name: 'Worker_pass' , defaultValue: "", description: "worker Passowrd")
+
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Adding_new_node
+                       chmod +x test.sh'''
+                 sh """ set +x 
+                       Centos/Ansible_Kubernetes/test.sh ${params.Master_ip} ${params.Master_pass} ${params.Worker_ip} ${params.Worker_pass}
+                       """
+                       
+         }
+       }
+       stage("Kubernets and Docker Installation"){
+         steps{
+             sh ''' cd Centos/Adding_new_node
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory kube.yml '''
+             sh 'sleep 5' 
+         }
+       }  
+    stage("Nexus Configuration"){
+        steps{
+            sh 'sleep 10'
+            sh ''' cd Centos/Adding_new_node
+                   set +x
+                   export ANSIBLE_HOST_KEY_CHECKING=False
+                   ansible-playbook -i inventory docker.yml --extra-vars "nexus_user=CC_devops nexus_pwd=3RiNO#A_ nexus_ip=178.62.64.11 nexus_docker_port=8086"
+               '''
+        }
+      }
+    }
+}

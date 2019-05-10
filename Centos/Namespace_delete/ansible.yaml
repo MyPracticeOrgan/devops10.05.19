@@ -1,0 +1,68 @@
+- hosts: master
+  become_user: centos
+
+  vars:
+    namespace_name: sandbox-cccseu
+    app_name: platform
+    nginx_name: sandbox
+
+  tasks:
+   - name: List the PV
+     command: kubectl get pv
+     become: yes
+
+   - name: Delete the Elasticsearch PV
+     command: kubectl delete pv {{ namespace_name }}-elasticsearch-pv-volume --timeout=5s
+     ignore_errors: True
+     become: yes
+
+   - name: Force deleting the PV
+     command: kubectl patch pv {{ namespace_name }}-elasticsearch-pv-volume -p '{"metadata":{"finalizers":null}}'
+     become: yes
+
+   - name: Delete the Keycloak Postgres PV
+     command: kubectl delete pv {{ namespace_name }}-keycloak-postgres-pv-volume --timeout=5s
+     ignore_errors: True
+     become: yes
+
+   - name: Force deleting the PV
+     command: kubectl patch pv {{ namespace_name }}-keycloak-postgres-pv-volume -p '{"metadata":{"finalizers":null}}'
+     become: yes
+
+   - name: Delete the Platform Postgres PV
+     command: kubectl delete pv {{ namespace_name }}-{{ app_name }}-postgres-pv-volume --timeout=5s
+     ignore_errors: True
+     become: yes
+
+   - name: Force deleting the PV
+     command: kubectl patch pv {{ namespace_name }}-{{ app_name }}-postgres-pv-volume -p '{"metadata":{"finalizers":null}}'
+     become: yes
+   
+   - name: Delete a Exixting k8s namespace
+     command: kubectl delete namespace {{ namespace_name }}
+     become: yes
+
+- hosts: workers
+  become: yes
+  
+  tasks:
+    - name: Delete the Application directory
+      file:
+        path: "/{{ namespace_name }}-{{ app_name }}/"
+        state: absent
+        recurse: yes
+
+    - name: Delete the Elasticsearch directory
+      file:
+        path: "/{{ namespace_name }}-elasticsearch/"
+        state: absent
+        recurse: yes
+
+    - name: Delete the Keycloak directory
+      file:
+        path: "/{{ namespace_name }}-keycloak/"
+        state: absent
+        recurse: yes
+
+    - name: Delete Nginx Configuration folder and file
+      shell: cd /etc/nginx/conf.d/sites-enabled && rm -rf {{ nginx_name }}*

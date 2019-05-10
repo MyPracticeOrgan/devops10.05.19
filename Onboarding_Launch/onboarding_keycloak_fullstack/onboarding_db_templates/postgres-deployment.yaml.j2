@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: onboarding-postgres
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: onboarding-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: onboarding-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: {{ clientname }}-onboarding-postgredb
+      volumes:
+        - name: {{ clientname }}-onboarding-postgredb
+          persistentVolumeClaim:
+            claimName: {{ clientname }}-onboarding-postgres-pv-claim
+
+
+
+

@@ -1,0 +1,41 @@
+---
+- hosts: workers
+  become: yes
+  vars:
+    frontend_dns: hiteam.com
+    backend_dns: backend.com  
+    keycloak_dns: keycloak.com
+    elastic_dns: elastic
+    elasticbackend_dns: elasticbackend
+    image_dns: imageurl
+    minio_dns: minio_url
+    cert_email: ram@gmail.com
+  
+  tasks: 
+  - name: Installing epel
+    yum:
+      name: epel-release
+      state: latest
+
+  
+  - name: Install letsencrypt dependencies
+    yum:
+      name: certbot-nginx
+      state: latest
+      update_cache: yes
+
+  - name: SSL certs generation
+    command: "certbot --installer nginx --authenticator standalone --agree-tos --email {{ cert_email }} certonly -n -d {{ item }} --pre-hook 'service nginx stop' --post-hook 'service nginx start'"
+    args:
+      creates: "/etc/letsencrypt/live/{{ item }}"
+    with_items:
+     - "{{ frontend_dns }}"
+     - "{{ backend_dns }}"
+     - "{{ keycloak_dns }}"
+     - "{{ elastic_dns }}"
+     - "{{ elasticbackend_dns }}"
+     - "{{ support_dns }}"
+     - "{{ image_dns }}"
+     - "{{ minio_dns }}"
+ 
+  

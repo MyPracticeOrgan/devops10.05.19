@@ -1,0 +1,31 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - image: minio/minio
+        name: minio
+        command: ["minio"]
+        args: ["server" , "/data"]
+        ports:
+        - containerPort: 9000
+        envFrom:
+           - configMapRef:
+                name: minio-config
+        volumeMounts:
+           - mountPath: /data
+             name: {{ clientname }}-minio
+      volumes:
+        - name: {{ clientname }}-minio
+          persistentVolumeClaim:
+            claimName: {{ clientname }}-minio-pv-claim
+        
+      imagePullSecrets:
+         - name: dockersecrete

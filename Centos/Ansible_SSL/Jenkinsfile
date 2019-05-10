@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'subdomainName' , defaultValue: "", description: 'PlatformURL')
+        string(name: 'platfrombackenduri' , defaultValue: "", description: 'Backednurl')
+        string(name: 'keycloakuri' , defaultValue: "", description: 'keycloakURL')
+        string(name: 'billinguri' , defaultValue: "", description: 'BillingURL')
+        string(name: 'Email' , defaultValue: "", description: "Email")
+        string(name: 'Host_ip' , defaultValue: "", description: 'Host Ip address')
+        password(name: 'Host_pwd' , defaultValue: "", description: 'Host Passowrd')
+      
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/Ansible_SSL
+                       chmod +x ip_capture.sh'''
+                 sh """ set +x 
+                       Centos/Ansible_SSL/ip_capture.sh ${params.Host_ip} ${params.Host_pwd}
+                       """
+             
+         }
+       }
+       stage("SSL certs Creation"){
+         steps{
+             sh """ cd Centos/Ansible_SSL
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory ssl_certs.yaml --extra-vars "frontend_dns=${params.subdomainName} backend_dns=${params.platfrombackenduri} keycloak_dns=${params.keycloakuri} billing_dns=${params.billinguri} cert_email=${params.Email}" 
+                    """
+             sh 'sleep 20' 
+         }
+       } 
+        stage("Nginx configuration"){
+            steps{
+                sh """cd Centos/Ansible_SSL
+                      export ANSIBLE_HOST_KEY_CHECKING=False
+                      ansible-playbook -i inventory nginx_conf_deploy.yaml --extra-vars "frontend_dns=${params.subdomainName} backend_dns=${params.platfrombackenduri} keycloak_dns=${params.keycloakuri} billing_dns=${params.billinguri}"
+                      """
+            }
+        }
+    }
+}

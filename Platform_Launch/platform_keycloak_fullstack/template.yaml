@@ -1,0 +1,118 @@
+---
+- hosts: localhost
+
+  vars:
+    frontendport: 30007
+    backendport: 30008
+    keycloakport: 30009
+    elasticfrontport: 300010
+    elasticbackendport: 30011
+    imagebackport: 30012
+    supportport: 300013
+    minioport: 30013
+    clientname: optit
+    
+  tasks: 
+
+  - name: Create platform DB files
+    template: src={{ item }} dest=./platform/platform_db/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./platform_db_templates/*.j2
+
+  - name: Create keycloak DB files
+    template: src={{ item }} dest=./keycloak/keycloakdb/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./keycloak_db_templates/*.j2
+
+  - name: create Support mongo db template
+    template: src={{ item }} dest=./platform/platform_support_db/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./mongo_db_templates/*.j2
+
+  - name: create image template
+    template: src={{ item }} dest=./platform/platform_imageserver/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./imagetemplate/*.j2
+
+  - name: create support template
+    template: src={{ item }} dest=./platform/platform_support_app/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./trudesk_template/*.j2
+
+
+  - name: create elasticsearch template
+    template: src={{ item }} dest=./platform/platform_elasticsearch/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./elasticsearch_templates/*.j2
+
+  - name: create minio template
+    template: src={{ item }} dest=./platform/platform_minio/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./minio_template/*.j2
+
+  - name: create application service db template
+    template: src={{ item }} dest=./platform/app_services/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./app_templets/*.j2
+
+   
+
+
+- hosts: workers
+  become: yes
+
+  vars:
+    clientname: optit
+
+  tasks:
+  
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-keycloak/data
+      state: directory  
+
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-platform/data
+      state: directory
+
+
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-elasticsearch/data
+      state: directory
+      mode: 0777
+      recurse: yes
+
+  - name: Creates directory
+    file:
+      path: /{{ clientname }}-minio/data
+      state: directory
+  
+  - name: Creates support directory
+    file:
+      path: /{{ clientname }}/data/trudesk/uploads
+      state: directory
+      
+  - name: Creates support directory
+    file:
+      path: /{{ clientname }}/data/trudesk/plugins
+      state: directory
+  - name: Creates support directory
+    file:
+      path: /{{ clientname }}/data/trudesk/backups
+      state: directory
+  - name: Creates support directory
+    file:
+      path: /{{ clientname }}/data/db
+      state: directory
+      
+  - name: Creates support directory
+    file:
+      path: /{{ clientname }}/data/configdb
+      state: directory
+      
+      
+      
+      
+      

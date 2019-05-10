@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  labels:
+    app: backend
+data:
+  DBHOST: onboarding-postgres
+  DBPORT: "5432"
+  DBNAME: CCSONBOARD
+  schemaName: ccs
+  DBUSER: postgres
+  DBPASSWORD: postgres
+  #FRONTENDURI: https://onboarding-k8.cccsuk.co.uk/
+  #keycloakURI: https://onboarding-keycloak.cccsuk.co.uk/auth/
+  realmName: master
+  adminName: admin
+  adminPassword: publPh6cHuthEbRApHeN
+  adminClientId: admin-cli
+  keycloakAccessEndpoint: /protocol/openid-connect/token
+

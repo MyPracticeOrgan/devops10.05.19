@@ -1,0 +1,14 @@
+---
+- hosts: master
+  become_user: centos
+  vars:
+   version: {}
+   container_name: {}
+   namespace: {}
+
+  tasks:
+
+  - name: Deploying {{ container_name }} Application
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf set image deployment/{{ container_name }} {{ container_name }}=178.62.64.11:8086/platform_{{ container_name }}release:{{ version }} --namespace={{ namespace }}"
+    
+    #kubectl set image deployment/ccfront ccfrontend=142.93.40.203:8086/onboard_frontend:1.1.16

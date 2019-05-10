@@ -1,0 +1,40 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ccfront
+spec:
+  selector:
+    app: ccfront
+  ports:
+    - protocol: "TCP"
+      # Port accessible inside cluster
+      port: 3000
+      # Port to forward to inside the pod
+      targetPort: 3000
+      # Port accessible outside cluster
+      nodePort: 30002
+  type: LoadBalancer
+  externalIPs:
+  - 159.89.167.68
+
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ccfront
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: ccfront
+    spec:
+      containers:
+        - name: ccfrontend
+          image: 138.68.146.111:8086/ccfrontend:1.1.15
+          ports:
+            - containerPort: 3000
+
+

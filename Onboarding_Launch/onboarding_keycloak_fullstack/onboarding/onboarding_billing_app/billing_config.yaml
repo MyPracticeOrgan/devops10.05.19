@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: billing-config
+  labels:
+    app: billing
+data:
+  DBHOST: billing-postgres
+  DBPORT: "5432"
+  DBNAME: postgres
+  SCHEMANAME: ccs
+  DBUSER: keycloak
+  DBPASSWORD: password
+  realmName: master
+  adminName: admin
+  adminPassword: admin
+  adminClientId: admin-cli
+  JENKINSJOBNAME: platformdeploy
+  #STRIPE_API_KEY: sk_test_9JaS2xziotPnAM8SDymuwXyN
+

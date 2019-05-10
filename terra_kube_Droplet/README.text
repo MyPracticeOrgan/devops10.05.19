@@ -1,0 +1,18 @@
+# Any OS distirbution can be specified in the droplet_kube file 
+Ex: Ubuntu, Centos etc
+
+#export the token
+export DO_PAT={{digital_ocean_token}}
+
+# use the MD5 SSH key 
+MD5=$(ssh-keygen -E md5 -lf ~/.ssh/id_rsa.pub | awk '{print $2}')
+SSH_FINGERPRINT=${MD5:4}
+echo "$SSH_FINGERPRINT"
+terraform init
+terraform plan \
+ 	-var "do_token=${DO_PAT}" \
+ 	-var "pub_key=$HOME/.ssh/id_rsa.pub" \
+ 	-var "pvt_key=$HOME/.ssh/id_rsa" \
+    -var "ssh_fingerprint=$SSH_FINGERPRINT -out=droplet
+    
+terraform apply droplet

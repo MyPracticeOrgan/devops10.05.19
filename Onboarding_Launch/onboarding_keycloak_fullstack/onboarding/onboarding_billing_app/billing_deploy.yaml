@@ -1,0 +1,23 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: billing
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: billing
+    spec:
+      containers:
+      - image: 178.62.64.11:8086/onboard_billing:1.2.35
+        name: billing
+        envFrom:
+           - configMapRef:
+                name: billing-config
+           - configMapRef:
+                name: billingurl-config               
+        ports:
+        - containerPort: 3001
+      imagePullSecrets:
+         - name: dockersecrete

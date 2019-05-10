@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+
+  vars:
+    frontendport: 30007
+    clientname: optit
+    
+  tasks: 
+
+  - name: Create wordpress DB files
+    template: src={{ item }} dest=./wordpress/wordpress_db/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./wordpress_db_templates/*.j2
+
+#   - name: create worpress template
+#     template: src={{ item }} dest=./wordpress/wordpress_app/{{ item | basename | regex_replace('.j2','') }} force=yes
+#     with_fileglob:
+#      - ./wordpress_template/*.j2
+
+  - name: create application service db template
+    template: src={{ item }} dest=./wordpress/app_services/{{ item | basename | regex_replace('.j2','') }} force=yes
+    with_fileglob:
+     - ./app_templets/*.j2
+
+  
+
+- hosts: workers
+  become: yes
+
+  vars:
+    clientname: optit
+
+  tasks:
+      
+  - name: Creates wordpress_db directory
+    file:
+      path: /{{ clientname }}-wordpress/data
+      state: directory
