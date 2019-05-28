@@ -1,0 +1,1 @@
+Copyright (C) 2017-2019 Compliance Compendium Limited (UK) (11050418). All Rights Reserved.

@@ -11,13 +11,13 @@
      command: kubectl get pv
      become: yes
 
-   - name: Delete the Elasticsearch PV
-     command: kubectl delete pv {{ namespace_name }}-elasticsearch-pv-volume --timeout=5s
+   - name: Delete the Billing PV
+     command: kubectl delete pv {{ namespace_name }}-billing-pv-volume --timeout=5s
      ignore_errors: True
      become: yes
 
    - name: Force deleting the PV
-     command: kubectl patch pv {{ namespace_name }}-elasticsearch-pv-volume -p '{"metadata":{"finalizers":null}}'
+     command: kubectl patch pv {{ namespace_name }}-billing-pv-volume -p '{"metadata":{"finalizers":null}}'
      become: yes
 
    - name: Delete the Keycloak Postgres PV
@@ -29,7 +29,7 @@
      command: kubectl patch pv {{ namespace_name }}-keycloak-postgres-pv-volume -p '{"metadata":{"finalizers":null}}'
      become: yes
 
-   - name: Delete the Platform Postgres PV
+   - name: Delete the Onboarding Postgres PV
      command: kubectl delete pv {{ namespace_name }}-{{ app_name }}-postgres-pv-volume --timeout=5s
      ignore_errors: True
      become: yes
@@ -43,26 +43,29 @@
      become: yes
 
 - hosts: workers
-  become: yes
+  become_user: centos
   
   tasks:
     - name: Delete the Application directory
       file:
         path: "/{{ namespace_name }}-{{ app_name }}/"
         state: absent
+        become: yes
         recurse: yes
 
     - name: Delete the Elasticsearch directory
       file:
-        path: "/{{ namespace_name }}-elasticsearch/"
+        path: "/{{ namespace_name }}-billing/"
         state: absent
+        become: yes
         recurse: yes
 
     - name: Delete the Keycloak directory
       file:
         path: "/{{ namespace_name }}-keycloak/"
         state: absent
+        become: yes
         recurse: yes
 
     - name: Delete Nginx Configuration folder and file
-      shell: cd /etc/nginx/conf.d/sites-enabled && rm -rf {{ nginx_name }}*
+      shell: cd /etc/nginx/conf.d/sites-enabled && sudo rm -rf {{ nginx_name }}*

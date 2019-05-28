@@ -10,7 +10,7 @@ spec:
         app: frontend
     spec:
       containers:
-      - image: 178.62.64.11:8086/onboard_frontend:1.2.72
+      - image: 134.209.29.42:8086/onboard_frontend:1.2.79
         name: frontend
         envFrom:
            - configMapRef:

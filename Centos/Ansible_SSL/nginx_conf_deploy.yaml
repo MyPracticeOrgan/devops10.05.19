@@ -37,7 +37,7 @@
       mode: 0644
       force: yes
     with_items:
-       - { dns: "{{ frontend_dns }}", port: 3000 , stream: frontend }
+       - { dns: "{{ frontend_dns }}", port: 5601 , stream: uptime }
 #        - { dns: "{{ backend_dns }}" , port: 30003 , stream: backend }
 #        - { dns: "{{ keycloak_dns }}" ,port: 30004 , stream: keycloak }
 #        - { dns: "{{ billing_dns }}" ,port: 30001 , stream: billing }
@@ -47,7 +47,7 @@
       path: /etc/nginx/conf.d/sites-enabled/{{ item.stream }}.d
       state: directory
     with_items:
-      - { dns: "{{ frontend_dns }}" , stream: frontend }
+      - { dns: "{{ frontend_dns }}" , stream: uptime }
 #       - { dns: "{{ backend_dns }}" , stream: backend }
 #       - { dns: "{{ keycloak_dns }}" , stream: keycloak }
 #       - { dns: "{{ billing_dns }}" , stream: billing }
@@ -60,7 +60,7 @@
       mode: 0644
       force: yes
     with_items:
-       - { dns: "{{ frontend_dns }}" , stream: frontend }
+       - { dns: "{{ frontend_dns }}" , stream: uptime }
 #        - { dns: "{{ backend_dns }}" , stream: backend }
 #        - { dns: "{{ billing_dns }}" , stream: billing }
        

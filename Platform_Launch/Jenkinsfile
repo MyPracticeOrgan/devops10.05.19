@@ -18,10 +18,10 @@ pipeline {
 	string(name: 'stripepublish_key' , defaultValue: "", description: 'Enter the stripe_publish_key')
 	string(name: 'stripetaxpercent' , defaultValue: "", description: 'Enter the stripe_tax_percent')
         string(name: 'adminemail', defaultValue: "vignesh.k@akonisoftwareservices.com", description: 'Admin url for ssl creation')
-        string(name: 'masterIP' , defaultValue: "104.248.166.239", description: 'Master Ip address')
+        string(name: 'masterIP' , defaultValue: "134.209.29.250", description: 'Master Ip address')
         password(name: 'masterPsw' , defaultValue: "r9swe?o++lk04I3a6evo", description: 'Master password')
-        string(name: 'nodeIP' , defaultValue: "159.65.82.150", description: 'Worker Ip address')
-        password(name: 'nodePsw' , defaultValue: "cHibrUnosut5Obrifujo", description: "worker Password")
+        string(name: 'nodeIP' , defaultValue: "142.93.46.180", description: 'Worker Ip address')
+        password(name: 'nodePsw' , defaultValue: "BoChEkEbriDEmIkLpA7p", description: "worker Password")
 
     }
 

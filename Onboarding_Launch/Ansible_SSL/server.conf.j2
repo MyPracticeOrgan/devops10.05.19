@@ -24,8 +24,8 @@ if ( $host ~* "^www\.(.*)$" ) {
     access_log  /var/log/nginx/{{ item.dns }}.access.log;
     error_log  /var/log/nginx/{{ item.dns }}.log;
 
-    ssl_certificate /etc/letsencrypt/live/yesonesoftware.com/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/yesonesoftware.com/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/cccseu.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/cccseu.com/privkey.pem; # managed by Certbot
     proxy_intercept_errors on;
 
 #    error_page 404 /error_404.html;

@@ -10,7 +10,7 @@ spec:
         app: imagebackend
     spec:
       containers:
-      - image: 178.62.64.11:8086/platform_image:1.2.23
+      - image: 134.209.29.42:8086/platform_image:1.2.24
         name: image
         envFrom:
            - configMapRef:

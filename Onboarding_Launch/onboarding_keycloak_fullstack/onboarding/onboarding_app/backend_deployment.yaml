@@ -10,7 +10,7 @@ spec:
         app: backend
     spec:
       containers:
-      - image: 178.62.64.11:8086/onboard_backend:1.2.44
+      - image: 134.209.29.42:8086/onboard_backend:1.2.46
         name: backend
         envFrom:
            - configMapRef:
