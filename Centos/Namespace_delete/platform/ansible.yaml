@@ -76,9 +76,16 @@
         become: yes
         recurse: yes
 
-    - name: Delete the Keycloak directory
+    - name: Delete the Minio directory
       file:
         path: "/{{ namespace_name }}-minio/"
+        state: absent
+        become: yes
+        recurse: yes
+
+    - name: Delete the Trudesk directory
+      file:
+        path: "/{{ namespace_name }}"
         state: absent
         become: yes
         recurse: yes
