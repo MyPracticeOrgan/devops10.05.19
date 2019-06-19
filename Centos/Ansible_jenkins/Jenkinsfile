@@ -11,19 +11,29 @@ pipeline {
          steps{
                 sh ''' cd Centos/Ansible_jenkins
                        chmod +x test.sh'''
-                 sh """ set +x 
+                 sh """ set +x
                        Centos/Ansible_jenkins/test.sh ${params.Master_ip} ${params.Master_pass}
                        """
-             
+
          }
        }
        stage("Jenkins Installation"){
          steps{
-             sh 'sleep 5' 
+             sh 'sleep 5'
              sh ''' cd Centos/Ansible_jenkins
                     export ANSIBLE_HOST_KEY_CHECKING=False
                     ansible-playbook -i inventory jenkins.yaml '''
                 }
-       }
+             }
+     stage("Docker installation"){
+        steps{
+            sh 'sleep 10'
+            sh ''' cd Centos/Ansible_jenkins
+                   set +x
+                   export ANSIBLE_HOST_KEY_CHECKING=False
+                   ansible-playbook -i inventory docker.yml --extra-vars "nexus_user=CC_DevOps nexus_pwd=3RiNO#A_ nexus_ip=165.22.121.164 nexus_docker_port=8086"
+               '''
+        }
+      }
     }
-}
+  }

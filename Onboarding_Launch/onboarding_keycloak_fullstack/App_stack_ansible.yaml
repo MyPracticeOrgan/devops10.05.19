@@ -29,7 +29,7 @@
     command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace {{ Clientname }}"  
 
   - name: Deploying Nexus Docker secrets
-    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create secret docker-registry dockersecrete --docker-server=134.209.29.42:8086 --docker-username=CC_devops --docker-password=3RiNO#A_ --namespace={{ Clientname }}"
+    command: "kubectl --kubeconfig /etc/kubernetes/admin.conf create secret docker-registry dockersecrete --docker-server=165.22.121.164:8086 --docker-username=CC_DevOps --docker-password=3RiNO#A_ --namespace={{ Clientname }}"
 
   - name: Deploying keycloak db Application
     command: "kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /opt/onboarding/keycloak/keycloakdb/ --namespace={{ Clientname }}"

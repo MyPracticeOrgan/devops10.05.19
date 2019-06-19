@@ -10,7 +10,7 @@ spec:
         app: billing
     spec:
       containers:
-      - image: 134.209.29.42:8086/onboard_billing:1.2.37
+      - image: 165.22.121.164:8086/onboard_billing:1.2.1
         name: billing
         envFrom:
            - configMapRef:

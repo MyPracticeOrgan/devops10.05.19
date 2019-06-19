@@ -34,7 +34,7 @@ pipeline {
             sh ''' cd Centos/Adding_new_node
                    set +x
                    export ANSIBLE_HOST_KEY_CHECKING=False
-                   ansible-playbook -i inventory docker.yml --extra-vars "nexus_user=CC_devops nexus_pwd=3RiNO#A_ nexus_ip=134.209.29.42 nexus_docker_port=8086"
+                   ansible-playbook -i inventory docker.yml --extra-vars "nexus_user=CC_devops nexus_pwd=3RiNO#A_ nexus_ip=46.101.31.145 nexus_docker_port=8086"
                '''
         }
       }

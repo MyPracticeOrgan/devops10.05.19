@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'domain_name' , defaultValue: "cccseu.com", description: 'Enter the Domain Name')
+        string(name: 'subdomain_name' , defaultValue: "", description: 'Enter the subdomain name')
+        string(name: 'subdomain_ip' , defaultValue: "", description: 'Enter the subdomain IP')
+    }
+
+    stages {
+       stage(" Creating an A record in Godaddy") {
+         steps{
+                sh ''' cd Centos/wildcard_subdomain
+                       chmod +x subdomain.sh'''
+                 sh """ set +x
+                       Centos/wildcard_subdomain/subdomain.sh $domain_name $subdomain_name $subdomain_ip
+                       """
+             
+         }
+       }
+     }
+   }

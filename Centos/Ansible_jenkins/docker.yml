@@ -1,0 +1,30 @@
+---
+- hosts: jenkins
+  become: yes
+  vars:
+    nexus_user: abc     #dummy user
+    nexus_pwd: abc2323   #dummy pwd
+    nexus_ip: 152.343.545.6 #dummy ip
+    nexus_docker_port: 8110  #dummy port
+
+  tasks:
+
+    - name: Changing the docker /var/run/docker.sock permission to docker group
+      shell: chown root:docker /var/run/docker.sock
+
+    - name: Adding the centos user to the group
+      shell: usermod -a -G docker centos
+
+    - name: Copy the docker.json
+      copy:
+        src: ./daemon.json
+        dest: /etc/docker/
+      become: yes
+
+    - name: restart docker
+      service:
+         name: docker
+         state: restarted
+
+    - name: Login to the nexus Artifactory
+      command: docker login -u {{nexus_user}} -p {{nexus_pwd}} {{nexus_ip}}:{{nexus_docker_port}}

@@ -10,7 +10,7 @@ spec:
         app: keycloak
     spec:
       containers:
-      - image: 134.209.29.42:8086/platform_keycloak:1.2.5
+      - image: 165.22.121.164:8086/platform_keycloak:1.2.1
         name: keycloak
         envFrom:
            - configMapRef:

@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Worker_ip' , defaultValue: "", description: 'Enter the worker IP address')
+        password(name: 'Worker_pass' , defaultValue: "", description: 'Enter worker password')
+        choice(name: 'folder_name' , choices: "", description: 'Choose the folder name')
+    }
+
+    stages {
+       stage(" Creating a inventory File") {
+         steps{
+                sh ''' cd Centos/wildcard_ssl/ssl
+                       chmod +x ip_capture.sh'''
+                 sh """ set +x 
+                       Centos/wildcard_ssl/ssl/ip_capture.sh ${params.Worker_ip} ${params.Worker_pass}
+                       """
+             
+         }
+       }
+       stage("Copying the file from GitHub to Node droplet"){
+         steps{
+             sh 'sleep 5' 
+             sh ''' cd Centos/wildcard_ssl/ssl
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i inventory ansible.yaml --extra-vars "folder_name=$folder_name" 
+                '''
+                }
+             }
+           }
+         }

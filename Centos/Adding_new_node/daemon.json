@@ -1,4 +1,4 @@
 {
-  "insecure-registries":["134.209.29.42:8086"],
+  "insecure-registries":["46.101.31.145:8086"],
   "disable-legacy-registry":true
 }
